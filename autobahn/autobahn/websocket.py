@@ -3235,6 +3235,9 @@ class WebSocketClientProtocol(WebSocketProtocol):
       if self.factory.useragent is not None and self.factory.useragent != "":
          request += "User-Agent: %s\x0d\x0a" % self.factory.useragent.encode("utf-8")
 
+      if self.factory.cookies is not None and isinstance(self.factory.cookies, dict):
+         request += "Cookie: " + "; ".join([k + "=" + v for k, v in self.factory.cookies.iteritems()]) + "\x0d\x0a"
+
       request += "Host: %s:%d\x0d\x0a" % (self.factory.host.encode("utf-8"), self.factory.port)
       request += "Upgrade: WebSocket\x0d\x0a"
       request += "Connection: Upgrade\x0d\x0a"
@@ -3491,6 +3494,7 @@ class WebSocketClientFactory(protocol.ClientFactory, WebSocketFactory):
                 origin = None,
                 protocols = [],
                 useragent = "AutobahnPython/%s" % autobahn.version,
+                cookies = None,
 
                 ## debugging
                 debug = False,
@@ -3508,6 +3512,8 @@ class WebSocketClientFactory(protocol.ClientFactory, WebSocketFactory):
       :type protocols: list of strings
       :param useragent: User agent as announced in HTTP request header or None (default: "AutobahnWebSockets/x.x.x").
       :type useragent: str
+      :param cookies: Cookies in HTTP request header or None (default: None).
+      :type cookies: dict
       :param debug: Debug mode (default: False).
       :type debug: bool
       :param debugCodePaths: Debug code paths mode (default: False).
@@ -3526,14 +3532,14 @@ class WebSocketClientFactory(protocol.ClientFactory, WebSocketFactory):
 
       ## default WS session parameters
       ##
-      self.setSessionParameters(url, origin, protocols, useragent)
+      self.setSessionParameters(url, origin, protocols, useragent, cookies)
 
       ## default WebSocket protocol options
       ##
       self.resetProtocolOptions()
 
 
-   def setSessionParameters(self, url = None, origin = None, protocols = [], useragent = None):
+   def setSessionParameters(self, url = None, origin = None, protocols = [], useragent = None, cookies=None):
       """
       Set WebSocket session parameters.
 
@@ -3543,6 +3549,8 @@ class WebSocketClientFactory(protocol.ClientFactory, WebSocketFactory):
       :type origin: str
       :param protocols: List of WebSocket subprotocols the client should announce in opening handshake.
       :type protocols: list of strings
+      :param cookies: Cookies in HTTP request header or None (default: None).
+      :type cookies: dict
       :param useragent: User agent as announced in HTTP request header during opening handshake.
       :type useragent: str
       """
@@ -3568,6 +3576,7 @@ class WebSocketClientFactory(protocol.ClientFactory, WebSocketFactory):
       self.origin = origin
       self.protocols = protocols
       self.useragent = useragent
+      self.cookies = cookies
 
 
    def resetProtocolOptions(self):
